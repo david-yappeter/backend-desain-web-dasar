@@ -6,10 +6,31 @@ import (
 	"myapp/config"
 	"myapp/graph/model"
 	"myapp/tools"
+	"strings"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
+	"gorm.io/gorm"
 )
 
 //UserRegister register user
 func UserRegister(ctx context.Context, input model.NewUser) (*model.AuthentificationToken, error) {
+	_, err := UserGetByEmail(ctx, strings.ToLower(input.Email))
+
+	if err != nil && err != gorm.ErrRecordNotFound {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if err == nil {
+		fmt.Println(err)
+		return nil, &gqlerror.Error{
+			Message: "User Already Exists",
+			Extensions: map[string]interface{}{
+				"code": "USER_ALREADY_EXISTS",
+			},
+		}
+	}
+
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
@@ -18,7 +39,7 @@ func UserRegister(ctx context.Context, input model.NewUser) (*model.Authentifica
 
 	user := model.User{
 		Name:      input.Name,
-		Email:     input.Email,
+		Email:     strings.ToLower(input.Email),
 		Password:  tools.PasswordHash(input.Password),
 		CreatedAt: timeNow,
 		UpdatedAt: nil,
@@ -119,4 +140,52 @@ func UserPaginationGetNodes(ctx context.Context, limit *int, page *int, sortBy *
 	}
 
 	return users, nil
+}
+
+//UserGetByEmail Get By Email
+func UserGetByEmail(ctx context.Context, email string) (*model.User, error) {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	var user model.User
+
+	if err := db.Table("user").Where("lower(email) = ?", email).First(&user).Error; err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+//UserLogin Login
+func UserLogin(ctx context.Context, email string, password string) (*model.AuthentificationToken, error) {
+	getUser, err := UserGetByEmail(ctx, email)
+
+	if err != nil && err != gorm.ErrRecordNotFound {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if getUser == nil {
+		fmt.Println(err)
+		return nil, &gqlerror.Error{
+			Message: "User Not Found",
+			Extensions: map[string]interface{}{
+				"code": "USER_NOT_FOUND",
+			},
+		}
+	}
+
+	if !tools.PasswordValidate(password, getUser.Password) {
+		fmt.Println(err)
+		return nil, &gqlerror.Error{
+			Message: "Wrong Password",
+			Extensions: map[string]interface{}{
+				"code": "INVALID_PASSWORD",
+			},
+		}
+	}
+
+	return TokenGenerate(ctx, *getUser)
 }

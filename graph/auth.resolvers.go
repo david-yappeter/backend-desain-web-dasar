@@ -5,17 +5,17 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"myapp/graph/generated"
 	"myapp/graph/model"
+	"myapp/service"
 )
 
 func (r *authOpsResolver) Register(ctx context.Context, obj *model.AuthOps, input model.NewUser) (*model.AuthentificationToken, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.UserRegister(ctx, input)
 }
 
 func (r *authOpsResolver) Login(ctx context.Context, obj *model.AuthOps, email string, password string) (*model.AuthentificationToken, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.UserLogin(ctx, email, password)
 }
 
 // AuthOps returns generated.AuthOpsResolver implementation.
