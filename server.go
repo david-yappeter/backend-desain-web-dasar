@@ -5,6 +5,7 @@ import (
 	"myapp/directives"
 	"myapp/graph"
 	"myapp/graph/generated"
+	"myapp/service"
 	"net/http"
 	"os"
 
@@ -24,7 +25,7 @@ func main() {
 	}
 
 	router := chi.NewRouter()
-    router.Use()
+	router.Use(service.Middleware())
 	c := generated.Config{Resolvers: &graph.Resolver{}}
 	c.Directives.IsLogin = directives.IsLogin
 
