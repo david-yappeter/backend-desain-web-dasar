@@ -12,4 +12,5 @@ type Query {
 
 type Mutation {
     user: UserOps! @goField(forceResolver: true)
+    auth: AuthOps! @goField(forceResolver: true)
 }

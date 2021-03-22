@@ -59,6 +59,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		Auth func(childComplexity int) int
 		User func(childComplexity int) int
 	}
 
@@ -97,6 +98,7 @@ type AuthOpsResolver interface {
 }
 type MutationResolver interface {
 	User(ctx context.Context) (*model.UserOps, error)
+	Auth(ctx context.Context) (*model.AuthOps, error)
 }
 type QueryResolver interface {
 	Me(ctx context.Context) (*model.User, error)
@@ -164,6 +166,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.AuthentificationToken.Type(childComplexity), true
+
+	case "Mutation.auth":
+		if e.complexity.Mutation.Auth == nil {
+			break
+		}
+
+		return e.complexity.Mutation.Auth(childComplexity), true
 
 	case "Mutation.user":
 		if e.complexity.Mutation.User == nil {
@@ -391,6 +400,7 @@ type Query {
 
 type Mutation {
     user: UserOps! @goField(forceResolver: true)
+    auth: AuthOps! @goField(forceResolver: true)
 }`, BuiltIn: false},
 	{Name: "graph/user.graphqls", Input: `type User {
     id: ID!
@@ -800,6 +810,41 @@ func (ec *executionContext) _Mutation_user(ctx context.Context, field graphql.Co
 	res := resTmp.(*model.UserOps)
 	fc.Result = res
 	return ec.marshalNUserOps2ᚖmyappᚋgraphᚋmodelᚐUserOps(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_auth(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Auth(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.AuthOps)
+	fc.Result = res
+	return ec.marshalNAuthOps2ᚖmyappᚋgraphᚋmodelᚐAuthOps(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_me(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2779,6 +2824,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "auth":
+			out.Values[i] = ec._Mutation_auth(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3258,6 +3308,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 // endregion **************************** object.gotpl ****************************
 
 // region    ***************************** type.gotpl *****************************
+
+func (ec *executionContext) marshalNAuthOps2myappᚋgraphᚋmodelᚐAuthOps(ctx context.Context, sel ast.SelectionSet, v model.AuthOps) graphql.Marshaler {
+	return ec._AuthOps(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNAuthOps2ᚖmyappᚋgraphᚋmodelᚐAuthOps(ctx context.Context, sel ast.SelectionSet, v *model.AuthOps) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._AuthOps(ctx, sel, v)
+}
 
 func (ec *executionContext) marshalNAuthentificationToken2myappᚋgraphᚋmodelᚐAuthentificationToken(ctx context.Context, sel ast.SelectionSet, v model.AuthentificationToken) graphql.Marshaler {
 	return ec._AuthentificationToken(ctx, sel, &v)

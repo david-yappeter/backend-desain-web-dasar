@@ -26,7 +26,6 @@ type NewUser struct {
 	Password string `json:"password"`
 }
 
-
 type UserOps struct {
 	EditName     string `json:"edit_name"`
 	EditPassword string `json:"edit_password"`

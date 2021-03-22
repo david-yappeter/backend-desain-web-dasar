@@ -14,6 +14,10 @@ func (r *mutationResolver) User(ctx context.Context) (*model.UserOps, error) {
 	return &model.UserOps{}, nil
 }
 
+func (r *mutationResolver) Auth(ctx context.Context) (*model.AuthOps, error) {
+	return &model.AuthOps{}, nil
+}
+
 func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
 	return service.UserGetByToken(ctx)
 }
