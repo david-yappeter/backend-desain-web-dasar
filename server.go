@@ -24,6 +24,7 @@ func main() {
 	}
 
 	router := chi.NewRouter()
+    router.Use()
 	c := generated.Config{Resolvers: &graph.Resolver{}}
 	c.Directives.IsLogin = directives.IsLogin
 
