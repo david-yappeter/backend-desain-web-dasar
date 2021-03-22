@@ -1,0 +1,35 @@
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    created_at: String!
+    updated_at: String
+}
+
+type UserPagination {
+    limit: Int
+    page: Int
+    sort_by: String 
+    ascending: Boolean
+    total_data: Int! @goField(forceResolver: true)
+    nodes: [User!]! @goField(forceResolver: true)
+}
+
+input NewUser {
+    name: String!
+    email: String!
+    password: String!
+}
+
+input EditUserName {
+    name: String!
+}
+
+input EditUserPassword {
+    password: String!
+}
+
+type UserOps {
+    edit_name(input: EditUserName!): String! @goField(forceResolver: true) @isLogin
+    edit_password(input: EditUserPassword!): String! @goField(forceResolver: true) @isLogin
+}

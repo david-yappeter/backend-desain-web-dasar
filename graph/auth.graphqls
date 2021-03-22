@@ -1,0 +1,9 @@
+type AuthentificationToken {
+    type: String!
+    token: String!
+}
+
+type AuthOps {
+    register(input: NewUser!): AuthentificationToken! @goField(forceResolver: true)
+    login(email: String!, password: String!): AuthentificationToken! @goField(forceResolver: true)
+}

@@ -1,0 +1,15 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+directive @goField(forceResolver: Boolean, name: String) on INPUT_FIELD_DEFINITION | FIELD_DEFINITION
+directive @isLogin on FIELD_DEFINITION
+
+type Query {
+    me: User! @goField(forceResolver: true) @isLogin
+    user(id: ID!): User! @goField(forceResolver: true)
+    users(limit: Int, page: Int, sort_by: String, ascending: Boolean): UserPagination! @goField(forceResolver: true)
+}
+
+type Mutation {
+    user: UserOps! @goField(forceResolver: true)
+}
