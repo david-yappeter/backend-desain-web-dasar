@@ -68,7 +68,7 @@ func UserUpdateSingleColumn(ctx context.Context, columnName string, value interf
 
 	timeNow := tools.TimeNowString()
 
-	if err := db.Table("user").Where("user_id = ?", user.ID).Updates(map[string]interface{}{
+	if err := db.Table("user").Where("id = ?", user.ID).Updates(map[string]interface{}{
 		columnName:   value,
 		"updated_at": timeNow,
 	}).Error; err != nil {
