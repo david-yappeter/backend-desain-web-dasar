@@ -46,8 +46,8 @@ func (r *queryResolver) Post(ctx context.Context, id int) (*model.Post, error) {
 	return service.PostGetByID(ctx, id)
 }
 
-func (r *queryResolver) Posts(ctx context.Context, limit *int, page *int, sortBy *string, ascending bool) (*model.PostPagination, error) {
-	return &model.PostPagination{Limit: limit, Page: page, SortBy: sortBy, Ascending: &ascending}, nil
+func (r *queryResolver) Posts(ctx context.Context, limit *int, page *int, sortBy *string, ascending *bool) (*model.PostPagination, error) {
+	return &model.PostPagination{Limit: limit, Page: page, SortBy: sortBy, Ascending: ascending}, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

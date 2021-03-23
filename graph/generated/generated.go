@@ -122,7 +122,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Me    func(childComplexity int) int
 		Post  func(childComplexity int, id int) int
-		Posts func(childComplexity int, limit *int, page *int, sortBy *string, ascending bool) int
+		Posts func(childComplexity int, limit *int, page *int, sortBy *string, ascending *bool) int
 		User  func(childComplexity int, id int) int
 		Users func(childComplexity int, limit *int, page *int, sortBy *string, ascending *bool) int
 	}
@@ -186,7 +186,7 @@ type QueryResolver interface {
 	User(ctx context.Context, id int) (*model.User, error)
 	Users(ctx context.Context, limit *int, page *int, sortBy *string, ascending *bool) (*model.UserPagination, error)
 	Post(ctx context.Context, id int) (*model.Post, error)
-	Posts(ctx context.Context, limit *int, page *int, sortBy *string, ascending bool) (*model.PostPagination, error)
+	Posts(ctx context.Context, limit *int, page *int, sortBy *string, ascending *bool) (*model.PostPagination, error)
 }
 type UserOpsResolver interface {
 	EditName(ctx context.Context, obj *model.UserOps, input model.EditUserName) (string, error)
@@ -533,7 +533,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Posts(childComplexity, args["limit"].(*int), args["page"].(*int), args["sort_by"].(*string), args["ascending"].(bool)), true
+		return e.complexity.Query.Posts(childComplexity, args["limit"].(*int), args["page"].(*int), args["sort_by"].(*string), args["ascending"].(*bool)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
@@ -803,7 +803,7 @@ type Query {
     users(limit: Int, page: Int, sort_by: String, ascending: Boolean): UserPagination! @goField(forceResolver: true)
 
     post(id: ID!): Post! @goField(forceResolver: true)
-    posts(limit: Int, page: Int, sort_by: String, ascending: Boolean!): PostPagination! @goField(forceResolver: true)
+    posts(limit: Int, page: Int, sort_by: String, ascending: Boolean): PostPagination! @goField(forceResolver: true)
 }
 
 type Mutation {
@@ -1045,10 +1045,10 @@ func (ec *executionContext) field_Query_posts_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["sort_by"] = arg2
-	var arg3 bool
+	var arg3 *bool
 	if tmp, ok := rawArgs["ascending"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ascending"))
-		arg3, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2812,7 +2812,7 @@ func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Posts(rctx, args["limit"].(*int), args["page"].(*int), args["sort_by"].(*string), args["ascending"].(bool))
+		return ec.resolvers.Query().Posts(rctx, args["limit"].(*int), args["page"].(*int), args["sort_by"].(*string), args["ascending"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

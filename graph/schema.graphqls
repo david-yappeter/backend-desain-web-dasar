@@ -10,7 +10,7 @@ type Query {
     users(limit: Int, page: Int, sort_by: String, ascending: Boolean): UserPagination! @goField(forceResolver: true)
 
     post(id: ID!): Post! @goField(forceResolver: true)
-    posts(limit: Int, page: Int, sort_by: String, ascending: Boolean!): PostPagination! @goField(forceResolver: true)
+    posts(limit: Int, page: Int, sort_by: String, ascending: Boolean): PostPagination! @goField(forceResolver: true)
 }
 
 type Mutation {
