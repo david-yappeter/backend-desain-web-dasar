@@ -29,58 +29,56 @@ func CorsMiddleware(next http.Handler) http.Handler {
 }
 
 // Middleware decodes the share session cookie and packs the session into context
-func Middleware() func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			bearerToken := r.Header.Get("Authorization")
+func Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		bearerToken := r.Header.Get("Authorization")
 
-			if bearerToken == "" {
-				next.ServeHTTP(w, r)
-				return
-			}
-
-			token, err := splitBearer(bearerToken)
-
-			if err != nil {
-				fmt.Println(err)
-				http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
-				return
-			}
-
-			tokenBeforeClaim, err := TokenValidate(context.Background(), token)
-
-			claims, ok := tokenBeforeClaim.Claims.(*UserClaim)
-			if !ok && !tokenBeforeClaim.Valid {
-				fmt.Println(err)
-				http.Error(w, "Invalid Token", http.StatusForbidden)
-				return
-			}
-
-			if err != nil {
-				fmt.Println(err)
-				http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
-				return
-			}
-
-			if time.Now().UTC().UnixNano()/int64(time.Millisecond) > claims.ExpiresAt {
-				http.Error(w, fmt.Sprint("Token Expired"), http.StatusBadRequest)
-				return
-			}
-
-			if _, err = UserGetByID(context.Background(), claims.ID); err != nil {
-				fmt.Println(err)
-				http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
-				return
-			}
-
-			// put it in context
-			ctx := context.WithValue(r.Context(), userCtxKey, claims)
-
-			// and call the next with our new context
-			r = r.WithContext(ctx)
+		if bearerToken == "" {
 			next.ServeHTTP(w, r)
-		})
-	}
+			return
+		}
+
+		token, err := splitBearer(bearerToken)
+
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
+			return
+		}
+
+		tokenBeforeClaim, err := TokenValidate(context.Background(), token)
+
+		claims, ok := tokenBeforeClaim.Claims.(*UserClaim)
+		if !ok && !tokenBeforeClaim.Valid {
+			fmt.Println(err)
+			http.Error(w, "Invalid Token", http.StatusForbidden)
+			return
+		}
+
+		if err != nil {
+			fmt.Println(err)
+			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+			return
+		}
+
+		if time.Now().UTC().UnixNano()/int64(time.Millisecond) > claims.ExpiresAt {
+			http.Error(w, fmt.Sprint("Token Expired"), http.StatusBadRequest)
+			return
+		}
+
+		if _, err = UserGetByID(context.Background(), claims.ID); err != nil {
+			fmt.Println(err)
+			http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+			return
+		}
+
+		// put it in context
+		ctx := context.WithValue(r.Context(), userCtxKey, claims)
+
+		// and call the next with our new context
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
