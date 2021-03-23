@@ -13,6 +13,7 @@ const loadersKey = "dataloaders"
 type Loaders struct {
 	PostCommendBatchByPostID PostCommendBatchLoaderByPostID
 	PostLikeBatchByPostID    PostLikeBatchLoaderByPostID
+	UserByID                 UserLoaderByID
 }
 
 func Middleware(next http.Handler) http.Handler {
@@ -64,6 +65,30 @@ func Middleware(next http.Handler) http.Handler {
 					}
 
 					return postLikes, nil
+				},
+			},
+			UserByID: UserLoaderByID{
+				maxBatch: 100,
+				wait:     1 * time.Millisecond,
+				fetch: func(ids []int) ([]*model.User, []error) {
+
+					resp, err := service.UserGetByArrayID(context.Background(), ids)
+
+					if err != nil {
+						return nil, []error{err}
+					}
+
+					userById := map[int]*model.User{}
+					for _, val := range resp {
+						userById[val.ID] = val
+					}
+
+					users := make([]*model.User, len(ids))
+					for i, id := range ids {
+						users[i] = userById[id]
+					}
+
+					return users, nil
 				},
 			},
 		})

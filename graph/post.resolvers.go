@@ -19,6 +19,10 @@ func (r *postResolver) Likes(ctx context.Context, obj *model.Post) ([]*model.Pos
 	return dataloader.For(ctx).PostLikeBatchByPostID.Load(obj.ID)
 }
 
+func (r *postResolver) User(ctx context.Context, obj *model.Post) (*model.User, error) {
+	return dataloader.For(ctx).UserByID.Load(obj.UserID)
+}
+
 func (r *postOpsResolver) Create(ctx context.Context, obj *model.PostOps, input model.NewPost) (*model.Post, error) {
 	return service.PostCreate(ctx, input)
 }

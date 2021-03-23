@@ -194,3 +194,19 @@ func UserLogin(ctx context.Context, email string, password string) (*model.Authe
 
 	return TokenGenerate(ctx, *getUser)
 }
+
+//UserGetByArrayID Get By Array ID
+func UserGetByArrayID(ctx context.Context, ids []int) ([]*model.User, error) {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	var users []*model.User
+
+	if err := db.Table("user").Where("id IN (?)", ids).Find(&users).Error; err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return users, nil
+}

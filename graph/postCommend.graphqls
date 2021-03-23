@@ -4,6 +4,7 @@ type PostCommend {
     created_at: String!
     user_id: ID!
     post_id: ID!
+    user: User! @goField(forceResolver: true)
 }
 
 input NewPostCommend {

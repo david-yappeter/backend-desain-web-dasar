@@ -5,6 +5,7 @@ type Post {
     user_id: ID!
     commends: [PostCommend!]! @goField(forceResolver: true)
     likes: [PostLike!]!  @goField(forceResolver: true)
+    user: User! @goField(forceResolver: true)
 }
 
 type PostPagination {

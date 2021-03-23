@@ -39,7 +39,9 @@ type ResolverRoot interface {
 	AuthOps() AuthOpsResolver
 	Mutation() MutationResolver
 	Post() PostResolver
+	PostCommend() PostCommendResolver
 	PostCommendOps() PostCommendOpsResolver
+	PostLike() PostLikeResolver
 	PostLikeOps() PostLikeOpsResolver
 	PostOps() PostOpsResolver
 	PostPagination() PostPaginationResolver
@@ -77,6 +79,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Likes     func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -85,6 +88,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		PostID    func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -97,6 +101,7 @@ type ComplexityRoot struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
 		PostID    func(childComplexity int) int
+		User      func(childComplexity int) int
 		UserID    func(childComplexity int) int
 	}
 
@@ -164,10 +169,17 @@ type MutationResolver interface {
 type PostResolver interface {
 	Commends(ctx context.Context, obj *model.Post) ([]*model.PostCommend, error)
 	Likes(ctx context.Context, obj *model.Post) ([]*model.PostLike, error)
+	User(ctx context.Context, obj *model.Post) (*model.User, error)
+}
+type PostCommendResolver interface {
+	User(ctx context.Context, obj *model.PostCommend) (*model.User, error)
 }
 type PostCommendOpsResolver interface {
 	Create(ctx context.Context, obj *model.PostCommendOps, input model.NewPostCommend) (*model.PostCommend, error)
 	Delete(ctx context.Context, obj *model.PostCommendOps, id int) (string, error)
+}
+type PostLikeResolver interface {
+	User(ctx context.Context, obj *model.PostLike) (*model.User, error)
 }
 type PostLikeOpsResolver interface {
 	Create(ctx context.Context, obj *model.PostLikeOps, input model.NewPostLike) (*model.PostLike, error)
@@ -320,6 +332,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.Likes(childComplexity), true
 
+	case "Post.user":
+		if e.complexity.Post.User == nil {
+			break
+		}
+
+		return e.complexity.Post.User(childComplexity), true
+
 	case "Post.user_id":
 		if e.complexity.Post.UserID == nil {
 			break
@@ -354,6 +373,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PostCommend.PostID(childComplexity), true
+
+	case "PostCommend.user":
+		if e.complexity.PostCommend.User == nil {
+			break
+		}
+
+		return e.complexity.PostCommend.User(childComplexity), true
 
 	case "PostCommend.user_id":
 		if e.complexity.PostCommend.UserID == nil {
@@ -406,6 +432,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PostLike.PostID(childComplexity), true
+
+	case "PostLike.user":
+		if e.complexity.PostLike.User == nil {
+			break
+		}
+
+		return e.complexity.PostLike.User(childComplexity), true
 
 	case "PostLike.user_id":
 		if e.complexity.PostLike.UserID == nil {
@@ -740,6 +773,7 @@ type AuthOps {
     user_id: ID!
     commends: [PostCommend!]! @goField(forceResolver: true)
     likes: [PostLike!]!  @goField(forceResolver: true)
+    user: User! @goField(forceResolver: true)
 }
 
 type PostPagination {
@@ -765,6 +799,7 @@ type PostOps {
     created_at: String!
     user_id: ID!
     post_id: ID!
+    user: User! @goField(forceResolver: true)
 }
 
 input NewPostCommend {
@@ -781,6 +816,7 @@ type PostCommendOps {
     created_at: String!
     user_id: ID!
     post_id: ID!
+    user: User! @goField(forceResolver: true)
 }
 
 input NewPostLike {
@@ -1721,6 +1757,41 @@ func (ec *executionContext) _Post_likes(ctx context.Context, field graphql.Colle
 	return ec.marshalNPostLike2ᚕᚖmyappᚋgraphᚋmodelᚐPostLikeᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Post_user(ctx context.Context, field graphql.CollectedField, obj *model.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Post",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Post().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖmyappᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PostCommend_id(ctx context.Context, field graphql.CollectedField, obj *model.PostCommend) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1894,6 +1965,41 @@ func (ec *executionContext) _PostCommend_post_id(ctx context.Context, field grap
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PostCommend_user(ctx context.Context, field graphql.CollectedField, obj *model.PostCommend) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PostCommend",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PostCommend().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖmyappᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostCommendOps_create(ctx context.Context, field graphql.CollectedField, obj *model.PostCommendOps) (ret graphql.Marshaler) {
@@ -2158,6 +2264,41 @@ func (ec *executionContext) _PostLike_post_id(ctx context.Context, field graphql
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PostLike_user(ctx context.Context, field graphql.CollectedField, obj *model.PostLike) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "PostLike",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.PostLike().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖmyappᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostLikeOps_create(ctx context.Context, field graphql.CollectedField, obj *model.PostLikeOps) (ret graphql.Marshaler) {
@@ -4825,6 +4966,20 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4850,28 +5005,42 @@ func (ec *executionContext) _PostCommend(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._PostCommend_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "body":
 			out.Values[i] = ec._PostCommend_body(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "created_at":
 			out.Values[i] = ec._PostCommend_created_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user_id":
 			out.Values[i] = ec._PostCommend_user_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "post_id":
 			out.Values[i] = ec._PostCommend_post_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PostCommend_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4947,23 +5116,37 @@ func (ec *executionContext) _PostLike(ctx context.Context, sel ast.SelectionSet,
 		case "id":
 			out.Values[i] = ec._PostLike_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "created_at":
 			out.Values[i] = ec._PostLike_created_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user_id":
 			out.Values[i] = ec._PostLike_user_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "post_id":
 			out.Values[i] = ec._PostLike_post_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PostLike_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
