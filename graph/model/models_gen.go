@@ -20,10 +20,48 @@ type EditUserPassword struct {
 	Password string `json:"password"`
 }
 
+type NewPost struct {
+	Body string `json:"body"`
+}
+
+type NewPostCommend struct {
+	Body   string `json:"body"`
+	PostID int    `json:"post_id"`
+}
+
+type NewPostLike struct {
+	Body   string `json:"body"`
+	PostID int    `json:"post_id"`
+}
+
 type NewUser struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type PostCommendOps struct {
+	Create *PostCommend `json:"create"`
+	Delete string       `json:"delete"`
+}
+
+type PostLikeOps struct {
+	Create *PostLike `json:"create"`
+	Delete string    `json:"delete"`
+}
+
+type PostOps struct {
+	Create *Post  `json:"create"`
+	Delete string `json:"delete"`
+}
+
+type PostPagination struct {
+	Limit     *int    `json:"limit"`
+	Page      *int    `json:"page"`
+	SortBy    *string `json:"sort_by"`
+	Ascending *bool   `json:"ascending"`
+	TotalData int     `json:"total_data"`
+	Nodes     []*Post `json:"nodes"`
 }
 
 type UserOps struct {

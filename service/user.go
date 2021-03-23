@@ -14,6 +14,11 @@ import (
 
 //UserRegister register user
 func UserRegister(ctx context.Context, input model.NewUser) (*model.AuthentificationToken, error) {
+	if err := tools.EmailValidate(strings.ToLower(input.Email)); err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
 	_, err := UserGetByEmail(ctx, strings.ToLower(input.Email))
 
 	if err != nil && err != gorm.ErrRecordNotFound {

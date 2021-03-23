@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"myapp/dataloader"
 	"myapp/directives"
 	"myapp/graph"
 	"myapp/graph/generated"
@@ -26,6 +27,7 @@ func main() {
 
 	router := chi.NewRouter()
 	router.Use(service.Middleware())
+	router.Use(dataloader.Middleware)
 	c := generated.Config{Resolvers: &graph.Resolver{}}
 	c.Directives.IsLogin = directives.IsLogin
 

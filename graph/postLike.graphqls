@@ -1,0 +1,17 @@
+type PostLike {
+    id: ID!
+    body: String!
+    created_at: String!
+    user_id: ID!
+    post_id: ID!
+}
+
+input NewPostLike {
+    body: String!
+    post_id: ID!
+}
+
+type PostLikeOps {
+    create(input: NewPostLike!): PostLike! @goField(forceResolver: true) @isLogin
+    delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+}

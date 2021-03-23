@@ -1,0 +1,17 @@
+type PostCommend {
+    id: ID!
+    body: String!
+    created_at: String!
+    user_id: ID!
+    post_id: ID!
+}
+
+input NewPostCommend {
+    body: String!
+    post_id: ID!
+}
+
+type PostCommendOps {
+    create(input: NewPostCommend!): PostCommend! @goField(forceResolver: true) @isLogin
+    delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+}

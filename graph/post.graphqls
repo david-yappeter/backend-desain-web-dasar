@@ -1,0 +1,26 @@
+type Post {
+    id: ID!
+    body: String!
+    created_at: String!
+    user_id: ID!
+    commends: [PostCommend!]! @goField(forceResolver: true)
+    likes: [PostLike!]!  @goField(forceResolver: true)
+}
+
+type PostPagination {
+    limit: Int
+    page: Int  
+    sort_by: String
+    ascending: Boolean
+    total_data: Int! @goField(forceResolver: true)
+    nodes: [Post!]! @goField(forceResolver: true)
+}
+
+input NewPost {
+    body: String!
+}
+
+type PostOps {
+    create(input: NewPost!): Post! @goField(forceResolver: true) @isLogin
+    delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+}

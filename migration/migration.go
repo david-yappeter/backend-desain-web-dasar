@@ -11,4 +11,7 @@ func MigrateTable() {
 	defer sqlDB.Close()
 
 	db.Migrator().CreateTable(&model.User{})
+	db.Migrator().CreateTable(&model.Post{})
+	db.Migrator().CreateTable(&model.PostCommend{})
+	db.Migrator().CreateTable(&model.PostLike{})
 }
