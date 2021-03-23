@@ -18,6 +18,16 @@ type contextKey struct {
 	name string
 }
 
+//CorsMiddleware CORS Middleware
+func CorsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// allow cross domain AJAX requests
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+		next.ServeHTTP(w, r)
+	})
+}
+
 // Middleware decodes the share session cookie and packs the session into context
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
