@@ -18,11 +18,6 @@ type contextKey struct {
 	name string
 }
 
-// A stand-in for our database backed user object
-type UserContext struct {
-	ID int `json:"id"`
-}
-
 // Middleware decodes the share session cookie and packs the session into context
 func Middleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -37,33 +32,39 @@ func Middleware() func(http.Handler) http.Handler {
 			token, err := splitBearer(bearerToken)
 
 			if err != nil {
+				fmt.Println(err)
 				http.Error(w, fmt.Sprint(err), http.StatusBadRequest)
+				return
 			}
 
 			tokenBeforeClaim, err := TokenValidate(context.Background(), token)
 
 			claims, ok := tokenBeforeClaim.Claims.(*UserClaim)
 			if !ok && !tokenBeforeClaim.Valid {
+				fmt.Println(err)
 				http.Error(w, "Invalid Token", http.StatusForbidden)
 				return
 			}
 
 			if err != nil {
+				fmt.Println(err)
 				http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+				return
 			}
 
-			if time.Now().UTC().UnixNano() > claims.ExpiresAt {
+			if time.Now().UTC().UnixNano()/int64(time.Millisecond) > claims.ExpiresAt {
 				http.Error(w, fmt.Sprint("Token Expired"), http.StatusBadRequest)
+				return
 			}
 
 			if _, err = UserGetByID(context.Background(), claims.ID); err != nil {
+				fmt.Println(err)
 				http.Error(w, fmt.Sprint(err), http.StatusInternalServerError)
+				return
 			}
 
 			// put it in context
-			ctx := context.WithValue(r.Context(), userCtxKey, UserContext{
-				ID: claims.ID,
-			})
+			ctx := context.WithValue(r.Context(), userCtxKey, claims)
 
 			// and call the next with our new context
 			r = r.WithContext(ctx)
@@ -73,8 +74,8 @@ func Middleware() func(http.Handler) http.Handler {
 }
 
 // ForContext finds the user from the context. REQUIRES Middleware to have run.
-func ForContext(ctx context.Context) *UserContext {
-	raw, _ := ctx.Value(userCtxKey).(*UserContext)
+func ForContext(ctx context.Context) *UserClaim {
+	raw, _ := ctx.Value(userCtxKey).(*UserClaim)
 	return raw
 }
 

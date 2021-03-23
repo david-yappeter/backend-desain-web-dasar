@@ -39,17 +39,17 @@ func TokenGenerate(ctx context.Context, input model.User) (*model.Authentificati
 	}
 
 	return &model.AuthentificationToken{
-        Type: "Bearer",
-        Token: signedToken,
-    }, nil
+		Type:  "Bearer",
+		Token: signedToken,
+	}, nil
 }
 
 //TokenValidate Validate JWT Token
 func TokenValidate(ctx context.Context, t string) (*jwt.Token, error) {
-	token, err := jwt.ParseWithClaims(t, UserClaim{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(t, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("There was an error")
-		}
+		}   
 		return jwtSecret, nil
 	})
 
