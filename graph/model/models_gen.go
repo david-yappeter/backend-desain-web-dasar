@@ -30,8 +30,7 @@ type NewPostCommend struct {
 }
 
 type NewPostLike struct {
-	Body   string `json:"body"`
-	PostID int    `json:"post_id"`
+	PostID int `json:"post_id"`
 }
 
 type NewUser struct {

@@ -37,7 +37,6 @@ func PostLikeCreate(ctx context.Context, input model.NewPostLike) (*model.PostLi
 	timeNow := tools.TimeNowString()
 
 	postLike := model.PostLike{
-		Body:      input.Body,
 		CreatedAt: timeNow,
 		UserID:    user.ID,
 		PostID:    input.PostID,
