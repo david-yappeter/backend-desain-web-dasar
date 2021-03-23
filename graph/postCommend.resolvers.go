@@ -5,17 +5,17 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"myapp/graph/generated"
 	"myapp/graph/model"
+	"myapp/service"
 )
 
 func (r *postCommendOpsResolver) Create(ctx context.Context, obj *model.PostCommendOps, input model.NewPostCommend) (*model.PostCommend, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.PostCommendCreate(ctx, input)
 }
 
 func (r *postCommendOpsResolver) Delete(ctx context.Context, obj *model.PostCommendOps, id int) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.PostCommendDelete(ctx, id)
 }
 
 // PostCommendOps returns generated.PostCommendOpsResolver implementation.

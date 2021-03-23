@@ -5,17 +5,17 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"myapp/graph/generated"
 	"myapp/graph/model"
+	"myapp/service"
 )
 
 func (r *postLikeOpsResolver) Create(ctx context.Context, obj *model.PostLikeOps, input model.NewPostLike) (*model.PostLike, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.PostLikeCreate(ctx, input)
 }
 
 func (r *postLikeOpsResolver) Delete(ctx context.Context, obj *model.PostLikeOps, id int) (string, error) {
-	panic(fmt.Errorf("not implemented"))
+	return service.PostLikeDelete(ctx, id)
 }
 
 // PostLikeOps returns generated.PostLikeOpsResolver implementation.
