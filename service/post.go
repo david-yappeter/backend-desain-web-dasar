@@ -6,12 +6,22 @@ import (
 	"myapp/config"
 	"myapp/graph/model"
 	"myapp/tools"
+	"strings"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 //PostCreate Create
 func PostCreate(ctx context.Context, input model.NewPost) (*model.Post, error) {
+	if strings.Trim(input.Body, " ") == "" {
+		return nil, &gqlerror.Error{
+			Message: "Content Must Not Be Empty!",
+			Extensions: map[string]interface{}{
+				"code": "CONTENT_MUST_NOT_BE_EMPTY",
+			},
+		}
+	}
+
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
