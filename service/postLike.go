@@ -95,3 +95,17 @@ func PostLikeDelete(ctx context.Context, id int) (string, error) {
 
 	return "Success", nil
 }
+
+//PostLikeDeleteByPostID Delete By Post ID
+func PostLikeDeleteByPostID(ctx context.Context, postID int) (string, error) {
+    db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	if err := db.Table("post_like").Where("post_id = ?", postID).Delete(&model.PostLike{}).Error; err != nil {
+		fmt.Println(err)
+		return "Failed", err
+	}
+
+	return "Success", nil
+}

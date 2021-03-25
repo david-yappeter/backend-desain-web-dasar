@@ -62,3 +62,17 @@ func PostCommendDelete(ctx context.Context, id int) (string, error) {
 
 	return "Success", nil
 }
+
+//PostCommendDelete Delete
+func PostCommendDeleteByPostID(ctx context.Context, postID int) (string, error) {
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	if err := db.Table("post_commend").Where("post_id = ?", postID).Delete(&model.PostCommend{}).Error; err != nil {
+		fmt.Println(err)
+		return "Failed", err
+	}
+
+	return "Success", nil
+}

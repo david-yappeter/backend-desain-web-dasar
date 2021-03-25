@@ -110,6 +110,16 @@ func PostDelete(ctx context.Context, id int) (string, error) {
 		}
 	}
 
+	if _, err := PostCommendDeleteByPostID(ctx, id); err != nil {
+		fmt.Println(err)
+		return "Failed", err
+	}
+
+	if _, err := PostLikeDeleteByPostID(ctx, id); err != nil {
+		fmt.Println(err)
+		return "Failed", err
+	}
+
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
