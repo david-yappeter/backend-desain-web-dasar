@@ -106,8 +106,7 @@ type ComplexityRoot struct {
 	}
 
 	PostLikeOps struct {
-		Create func(childComplexity int, input model.NewPostLike) int
-		Delete func(childComplexity int, id int) int
+		LikeOrUnlike func(childComplexity int, postID int) int
 	}
 
 	PostOps struct {
@@ -182,8 +181,7 @@ type PostLikeResolver interface {
 	User(ctx context.Context, obj *model.PostLike) (*model.User, error)
 }
 type PostLikeOpsResolver interface {
-	Create(ctx context.Context, obj *model.PostLikeOps, input model.NewPostLike) (*model.PostLike, error)
-	Delete(ctx context.Context, obj *model.PostLikeOps, id int) (string, error)
+	LikeOrUnlike(ctx context.Context, obj *model.PostLikeOps, postID int) (*model.PostLike, error)
 }
 type PostOpsResolver interface {
 	Create(ctx context.Context, obj *model.PostOps, input model.NewPost) (*model.Post, error)
@@ -447,29 +445,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PostLike.UserID(childComplexity), true
 
-	case "PostLikeOps.create":
-		if e.complexity.PostLikeOps.Create == nil {
+	case "PostLikeOps.like_or_unlike":
+		if e.complexity.PostLikeOps.LikeOrUnlike == nil {
 			break
 		}
 
-		args, err := ec.field_PostLikeOps_create_args(context.TODO(), rawArgs)
+		args, err := ec.field_PostLikeOps_like_or_unlike_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.PostLikeOps.Create(childComplexity, args["input"].(model.NewPostLike)), true
-
-	case "PostLikeOps.delete":
-		if e.complexity.PostLikeOps.Delete == nil {
-			break
-		}
-
-		args, err := ec.field_PostLikeOps_delete_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.PostLikeOps.Delete(childComplexity, args["id"].(int)), true
+		return e.complexity.PostLikeOps.LikeOrUnlike(childComplexity, args["post_id"].(int)), true
 
 	case "PostOps.create":
 		if e.complexity.PostOps.Create == nil {
@@ -824,8 +810,7 @@ input NewPostLike {
 }
 
 type PostLikeOps {
-    create(input: NewPostLike!): PostLike! @goField(forceResolver: true) @isLogin
-    delete(id: ID!): String! @goField(forceResolver: true) @isLogin
+    like_or_unlike(post_id: ID!): PostLike @goField(forceResolver: true) @isLogin 
 }`, BuiltIn: false},
 	{Name: "graph/schema.graphqls", Input: `# GraphQL schema example
 #
@@ -961,33 +946,18 @@ func (ec *executionContext) field_PostCommendOps_delete_args(ctx context.Context
 	return args, nil
 }
 
-func (ec *executionContext) field_PostLikeOps_create_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 model.NewPostLike
-	if tmp, ok := rawArgs["input"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewPostLike2myappᚋgraphᚋmodelᚐNewPostLike(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["input"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_PostLikeOps_delete_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_PostLikeOps_like_or_unlike_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["post_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("post_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
+	args["post_id"] = arg0
 	return args, nil
 }
 
@@ -2301,7 +2271,7 @@ func (ec *executionContext) _PostLike_user(ctx context.Context, field graphql.Co
 	return ec.marshalNUser2ᚖmyappᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PostLikeOps_create(ctx context.Context, field graphql.CollectedField, obj *model.PostLikeOps) (ret graphql.Marshaler) {
+func (ec *executionContext) _PostLikeOps_like_or_unlike(ctx context.Context, field graphql.CollectedField, obj *model.PostLikeOps) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2318,7 +2288,7 @@ func (ec *executionContext) _PostLikeOps_create(ctx context.Context, field graph
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_PostLikeOps_create_args(ctx, rawArgs)
+	args, err := ec.field_PostLikeOps_like_or_unlike_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2327,7 +2297,7 @@ func (ec *executionContext) _PostLikeOps_create(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.PostLikeOps().Create(rctx, obj, args["input"].(model.NewPostLike))
+			return ec.resolvers.PostLikeOps().LikeOrUnlike(rctx, obj, args["post_id"].(int))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsLogin == nil {
@@ -2353,76 +2323,11 @@ func (ec *executionContext) _PostLikeOps_create(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*model.PostLike)
 	fc.Result = res
-	return ec.marshalNPostLike2ᚖmyappᚋgraphᚋmodelᚐPostLike(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _PostLikeOps_delete(ctx context.Context, field graphql.CollectedField, obj *model.PostLikeOps) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "PostLikeOps",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_PostLikeOps_delete_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.PostLikeOps().Delete(rctx, obj, args["id"].(int))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsLogin == nil {
-				return nil, errors.New("directive isLogin is not implemented")
-			}
-			return ec.directives.IsLogin(ctx, obj, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(string); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOPostLike2ᚖmyappᚋgraphᚋmodelᚐPostLike(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostOps_create(ctx context.Context, field graphql.CollectedField, obj *model.PostOps) (ret graphql.Marshaler) {
@@ -5169,7 +5074,7 @@ func (ec *executionContext) _PostLikeOps(ctx context.Context, sel ast.SelectionS
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PostLikeOps")
-		case "create":
+		case "like_or_unlike":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -5177,24 +5082,7 @@ func (ec *executionContext) _PostLikeOps(ctx context.Context, sel ast.SelectionS
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._PostLikeOps_create(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		case "delete":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._PostLikeOps_delete(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
+				res = ec._PostLikeOps_like_or_unlike(ctx, field, obj)
 				return res
 			})
 		default:
@@ -5906,11 +5794,6 @@ func (ec *executionContext) unmarshalNNewPostCommend2myappᚋgraphᚋmodelᚐNew
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewPostLike2myappᚋgraphᚋmodelᚐNewPostLike(ctx context.Context, v interface{}) (model.NewPostLike, error) {
-	res, err := ec.unmarshalInputNewPostLike(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNNewUser2myappᚋgraphᚋmodelᚐNewUser(ctx context.Context, v interface{}) (model.NewUser, error) {
 	res, err := ec.unmarshalInputNewUser(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6030,10 +5913,6 @@ func (ec *executionContext) marshalNPostCommendOps2ᚖmyappᚋgraphᚋmodelᚐPo
 		return graphql.Null
 	}
 	return ec._PostCommendOps(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNPostLike2myappᚋgraphᚋmodelᚐPostLike(ctx context.Context, sel ast.SelectionSet, v model.PostLike) graphql.Marshaler {
-	return ec._PostLike(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNPostLike2ᚕᚖmyappᚋgraphᚋmodelᚐPostLikeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.PostLike) graphql.Marshaler {
@@ -6485,6 +6364,13 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return graphql.MarshalInt(*v)
+}
+
+func (ec *executionContext) marshalOPostLike2ᚖmyappᚋgraphᚋmodelᚐPostLike(ctx context.Context, sel ast.SelectionSet, v *model.PostLike) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PostLike(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

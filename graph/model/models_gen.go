@@ -45,8 +45,7 @@ type PostCommendOps struct {
 }
 
 type PostLikeOps struct {
-	Create *PostLike `json:"create"`
-	Delete string    `json:"delete"`
+	LikeOrUnlike *PostLike `json:"like_or_unlike"`
 }
 
 type PostOps struct {

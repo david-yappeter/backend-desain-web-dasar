@@ -98,7 +98,7 @@ func PostLikeDelete(ctx context.Context, id int) (string, error) {
 
 //PostLikeDeleteByPostID Delete By Post ID
 func PostLikeDeleteByPostID(ctx context.Context, postID int) (string, error) {
-    db := config.ConnectGorm()
+	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()
 
@@ -108,4 +108,27 @@ func PostLikeDeleteByPostID(ctx context.Context, postID int) (string, error) {
 	}
 
 	return "Success", nil
+}
+
+//PostLikeLikeOrUnlike Like or Unlike
+func PostLikeLikeOrUnlike(ctx context.Context, postID int) (*model.PostLike, error) {
+	user := ForContext(ctx)
+	getPostLike, err := PostLikeGetByUserIDAndPostID(ctx, user.ID, postID)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if getPostLike != nil {
+		if _, err = PostLikeDelete(ctx, getPostLike.ID); err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+		return nil, nil
+	} else {
+		return PostLikeCreate(ctx, model.NewPostLike{
+			PostID: postID,
+		})
+
+	}
 }

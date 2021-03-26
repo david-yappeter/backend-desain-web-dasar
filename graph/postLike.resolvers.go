@@ -15,12 +15,8 @@ func (r *postLikeResolver) User(ctx context.Context, obj *model.PostLike) (*mode
 	return dataloader.For(ctx).UserByID.Load(obj.UserID)
 }
 
-func (r *postLikeOpsResolver) Create(ctx context.Context, obj *model.PostLikeOps, input model.NewPostLike) (*model.PostLike, error) {
-	return service.PostLikeCreate(ctx, input)
-}
-
-func (r *postLikeOpsResolver) Delete(ctx context.Context, obj *model.PostLikeOps, id int) (string, error) {
-	return service.PostLikeDelete(ctx, id)
+func (r *postLikeOpsResolver) LikeOrUnlike(ctx context.Context, obj *model.PostLikeOps, postID int) (*model.PostLike, error) {
+	return service.PostLikeLikeOrUnlike(ctx, postID)
 }
 
 // PostLike returns generated.PostLikeResolver implementation.
