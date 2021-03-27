@@ -43,6 +43,14 @@ func UserRegister(ctx context.Context, input model.NewUser) (*model.Authentifica
 			}}
 	}
 
+    if len(input.Password) == 0 {
+		return nil, &gqlerror.Error{
+			Message: "Password Empty!",
+			Extensions: map[string]interface{}{
+				"code": "PASSWORD_EMPTY",
+			}}
+    }
+
 	_, err := UserGetByEmail(ctx, strings.ToLower(input.Email))
 
 	if err != nil && err != gorm.ErrRecordNotFound {
