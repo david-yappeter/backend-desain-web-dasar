@@ -56,7 +56,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	AuthOps struct {
-		Login    func(childComplexity int, email string, password string, confirmPassword string) int
+		Login    func(childComplexity int, email string, password string) int
 		Register func(childComplexity int, input model.NewUser) int
 	}
 
@@ -156,7 +156,7 @@ type ComplexityRoot struct {
 
 type AuthOpsResolver interface {
 	Register(ctx context.Context, obj *model.AuthOps, input model.NewUser) (*model.AuthentificationToken, error)
-	Login(ctx context.Context, obj *model.AuthOps, email string, password string, confirmPassword string) (*model.AuthentificationToken, error)
+	Login(ctx context.Context, obj *model.AuthOps, email string, password string) (*model.AuthentificationToken, error)
 }
 type MutationResolver interface {
 	User(ctx context.Context) (*model.UserOps, error)
@@ -232,7 +232,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.AuthOps.Login(childComplexity, args["email"].(string), args["password"].(string), args["confirm_password"].(string)), true
+		return e.complexity.AuthOps.Login(childComplexity, args["email"].(string), args["password"].(string)), true
 
 	case "AuthOps.register":
 		if e.complexity.AuthOps.Register == nil {
@@ -750,7 +750,7 @@ var sources = []*ast.Source{
 
 type AuthOps {
     register(input: NewUser!): AuthentificationToken! @goField(forceResolver: true)
-    login(email: String!, password: String!, confirm_password: String!): AuthentificationToken! @goField(forceResolver: true)
+    login(email: String!, password: String!): AuthentificationToken! @goField(forceResolver: true)
 }`, BuiltIn: false},
 	{Name: "graph/post.graphqls", Input: `type Post {
     id: ID!
@@ -856,6 +856,7 @@ input NewUser {
     name: String!
     email: String!
     password: String!
+    confirm_password: String!
 }
 
 input EditUserName {
@@ -898,15 +899,6 @@ func (ec *executionContext) field_AuthOps_login_args(ctx context.Context, rawArg
 		}
 	}
 	args["password"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["confirm_password"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirm_password"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["confirm_password"] = arg2
 	return args, nil
 }
 
@@ -1264,7 +1256,7 @@ func (ec *executionContext) _AuthOps_login(ctx context.Context, field graphql.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.AuthOps().Login(rctx, obj, args["email"].(string), args["password"].(string), args["confirm_password"].(string))
+		return ec.resolvers.AuthOps().Login(rctx, obj, args["email"].(string), args["password"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4671,6 +4663,14 @@ func (ec *executionContext) unmarshalInputNewUser(ctx context.Context, obj inter
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("password"))
 			it.Password, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "confirm_password":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("confirm_password"))
+			it.ConfirmPassword, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
