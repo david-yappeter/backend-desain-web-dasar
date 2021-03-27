@@ -22,6 +22,15 @@ func PostCreate(ctx context.Context, input model.NewPost) (*model.Post, error) {
 		}
 	}
 
+	if len(input.Body) >= 200 {
+		return nil, &gqlerror.Error{
+			Message: "Content Too Long",
+			Extensions: map[string]interface{}{
+				"code": "OVERFLOW_CONTENT",
+			},
+		}
+	}
+
 	db := config.ConnectGorm()
 	sqlDB, _ := db.DB()
 	defer sqlDB.Close()

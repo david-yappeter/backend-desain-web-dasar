@@ -16,7 +16,12 @@ import (
 func UserRegister(ctx context.Context, input model.NewUser) (*model.AuthentificationToken, error) {
 	if err := tools.EmailValidate(strings.ToLower(input.Email)); err != nil {
 		fmt.Println(err)
-		return nil, err
+		return nil, &gqlerror.Error{
+			Message: "Email Not Valid!",
+			Extensions: map[string]interface{}{
+				"code": "INVALID_EMAIL",
+			},
+		}
 	}
 
 	_, err := UserGetByEmail(ctx, strings.ToLower(input.Email))
@@ -164,7 +169,33 @@ func UserGetByEmail(ctx context.Context, email string) (*model.User, error) {
 }
 
 //UserLogin Login
-func UserLogin(ctx context.Context, email string, password string) (*model.AuthentificationToken, error) {
+func UserLogin(ctx context.Context, email string, password string, confirmPassword string) (*model.AuthentificationToken, error) {
+	if strings.EqualFold(strings.Trim(email, " "), "") {
+		return nil, &gqlerror.Error{
+			Message: "Email Must Not Be Empty!",
+			Extensions: map[string]interface{}{
+				"code": "EMAIL_EMPTY",
+			}}
+	}
+
+	if err := tools.EmailValidate(strings.ToLower(email)); err != nil {
+		fmt.Println(err)
+		return nil, &gqlerror.Error{
+			Message: "Email Not Valid!",
+			Extensions: map[string]interface{}{
+				"code": "INVALID_EMAIL",
+			},
+		}
+	}
+
+	if password != confirmPassword {
+		return nil, &gqlerror.Error{
+			Message: "Password & Confirm Password Different!",
+			Extensions: map[string]interface{}{
+				"code": "INVALID_CONFIRM_PASSWORD",
+			}}
+	}
+
 	getUser, err := UserGetByEmail(ctx, email)
 
 	if err != nil && err != gorm.ErrRecordNotFound {

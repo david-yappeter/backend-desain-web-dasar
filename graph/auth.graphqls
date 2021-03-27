@@ -5,5 +5,5 @@ type AuthentificationToken {
 
 type AuthOps {
     register(input: NewUser!): AuthentificationToken! @goField(forceResolver: true)
-    login(email: String!, password: String!): AuthentificationToken! @goField(forceResolver: true)
+    login(email: String!, password: String!, confirm_password: String!): AuthentificationToken! @goField(forceResolver: true)
 }

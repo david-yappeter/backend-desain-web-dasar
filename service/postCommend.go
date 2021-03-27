@@ -6,10 +6,31 @@ import (
 	"myapp/config"
 	"myapp/graph/model"
 	"myapp/tools"
+	"strings"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 //PostCommendCreate Create
 func PostCommendCreate(ctx context.Context, input model.NewPostCommend) (*model.PostCommend, error) {
+	if strings.Trim(input.Body, " ") == "" {
+		return nil, &gqlerror.Error{
+			Message: "Comment Must Not Be Empty!",
+			Extensions: map[string]interface{}{
+				"code": "COMMENT_MUST_NOT_BE_EMPTY",
+			},
+		}
+	}
+
+	if len(input.Body) >= 200 {
+		return nil, &gqlerror.Error{
+			Message: "Comment Too Long",
+			Extensions: map[string]interface{}{
+				"code": "OVERFLOW_COMMENT",
+			},
+		}
+	}
+
 	user := ForContext(ctx)
 
 	db := config.ConnectGorm()

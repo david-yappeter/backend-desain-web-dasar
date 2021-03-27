@@ -14,8 +14,8 @@ func (r *authOpsResolver) Register(ctx context.Context, obj *model.AuthOps, inpu
 	return service.UserRegister(ctx, input)
 }
 
-func (r *authOpsResolver) Login(ctx context.Context, obj *model.AuthOps, email string, password string) (*model.AuthentificationToken, error) {
-	return service.UserLogin(ctx, email, password)
+func (r *authOpsResolver) Login(ctx context.Context, obj *model.AuthOps, email string, password string, confirmPassword string) (*model.AuthentificationToken, error) {
+	return service.UserLogin(ctx, email, password, confirmPassword)
 }
 
 // AuthOps returns generated.AuthOpsResolver implementation.
