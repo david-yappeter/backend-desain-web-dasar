@@ -2,6 +2,7 @@ type User {
     id: ID!
     name: String!
     email: String!
+    avatar: String
     created_at: String!
     updated_at: String
 }
@@ -30,7 +31,12 @@ input EditUserPassword {
     password: String!
 }
 
+input EditAvatar {
+    avatar: Upload
+}
+
 type UserOps {
     edit_name(input: EditUserName!): String! @goField(forceResolver: true) @isLogin
     edit_password(input: EditUserPassword!): String! @goField(forceResolver: true) @isLogin
+    edit_avatar(input: EditAvatar!): String! @goField(forceResolver: true)
 }

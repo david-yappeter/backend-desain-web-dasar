@@ -43,13 +43,13 @@ func UserRegister(ctx context.Context, input model.NewUser) (*model.Authentifica
 			}}
 	}
 
-    if len(input.Password) == 0 {
+	if len(input.Password) == 0 {
 		return nil, &gqlerror.Error{
 			Message: "Password Empty!",
 			Extensions: map[string]interface{}{
 				"code": "PASSWORD_EMPTY",
 			}}
-    }
+	}
 
 	_, err := UserGetByEmail(ctx, strings.ToLower(input.Email))
 
@@ -113,6 +113,15 @@ func UserUpdateSingleColumn(ctx context.Context, columnName string, value interf
 
 //UserUpdateName Update Name
 func UserUpdateName(ctx context.Context, name string) (string, error) {
+	name = strings.Trim(name, " ")
+	if name == "" {
+		return "Failed", &gqlerror.Error{
+			Message: "Name Must Not Be Empty!",
+			Extensions: map[string]interface{}{
+				"code": "EMPTY_NAME",
+			},
+		}
+	}
 	resp, err := UserUpdateSingleColumn(ctx, "name", name)
 	return resp.(string), err
 }
@@ -134,6 +143,11 @@ func UserGetByID(ctx context.Context, id int) (*model.User, error) {
 	if err := db.Table("user").Where("id = ?", id).First(&user).Error; err != nil {
 		fmt.Println(err)
 		return nil, err
+	}
+
+	if user.Avatar != nil {
+		tempAvatar := tools.GdriveViewLink(*user.Avatar)
+		user.Avatar = &tempAvatar
 	}
 
 	return &user, nil
@@ -176,6 +190,13 @@ func UserPaginationGetNodes(ctx context.Context, limit *int, page *int, sortBy *
 		return nil, err
 	}
 
+	for index, val := range users {
+		if val.Avatar != nil {
+			tempAvatar := tools.GdriveViewLink(*val.Avatar)
+			users[index].Avatar = &tempAvatar
+		}
+	}
+
 	return users, nil
 }
 
@@ -190,6 +211,11 @@ func UserGetByEmail(ctx context.Context, email string) (*model.User, error) {
 	if err := db.Table("user").Where("lower(email) = ?", email).First(&user).Error; err != nil {
 		fmt.Println(err)
 		return nil, err
+	}
+
+	if user.Avatar != nil {
+		tempAvatar := tools.GdriveViewLink(*user.Avatar)
+		user.Avatar = &tempAvatar
 	}
 
 	return &user, nil
@@ -258,5 +284,56 @@ func UserGetByArrayID(ctx context.Context, ids []int) ([]*model.User, error) {
 		return nil, err
 	}
 
+	for index, val := range users {
+		if val.Avatar != nil {
+			tempAvatar := tools.GdriveViewLink(*val.Avatar)
+			users[index].Avatar = &tempAvatar
+		}
+	}
+
 	return users, nil
+}
+
+//UserEditAvatar Edit Avatar
+func UserEditAvatar(ctx context.Context, input model.EditAvatar) (string, error) {
+	if input.Avatar != nil {
+		if input.Avatar.ContentType == "image/jpeg" || input.Avatar.ContentType == "image/png" {
+			if input.Avatar.Size < 26214400 {
+				resp, err := UploadFile(ctx, *input.Avatar)
+
+				if err != nil {
+					fmt.Println(err)
+					return "Failed", err
+				}
+
+				if _, err := UserUpdateSingleColumn(ctx, "avatar", resp); err != nil {
+					fmt.Println(err)
+					return "Failed", err
+				}
+
+				return tools.GdriveViewLink(resp), nil
+			} else {
+				return "Failed", &gqlerror.Error{
+					Message: "File Exceeded 25MB",
+					Extensions: map[string]interface{}{
+						"code": "INVALID_FILE_SIZE",
+					},
+				}
+			}
+		} else {
+			return "Failed", &gqlerror.Error{
+				Message: "File Extensions Must Be .png .jpg .jpeg",
+				Extensions: map[string]interface{}{
+					"code": "INVALID_FILE_EXTENSIONS",
+				},
+			}
+		}
+	} else {
+		if _, err := UserUpdateSingleColumn(ctx, "avatar", nil); err != nil {
+			fmt.Println(err)
+			return "Failed", err
+		}
+	}
+
+	return "Success", nil
 }

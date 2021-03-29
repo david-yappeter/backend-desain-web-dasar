@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"github.com/99designs/gqlgen/graphql"
+)
+
 type AuthOps struct {
 	Register *AuthentificationToken `json:"register"`
 	Login    *AuthentificationToken `json:"login"`
@@ -10,6 +14,10 @@ type AuthOps struct {
 type AuthentificationToken struct {
 	Type  string `json:"type"`
 	Token string `json:"token"`
+}
+
+type EditAvatar struct {
+	Avatar *graphql.Upload `json:"avatar"`
 }
 
 type EditUserName struct {
@@ -66,6 +74,7 @@ type PostPagination struct {
 type UserOps struct {
 	EditName     string `json:"edit_name"`
 	EditPassword string `json:"edit_password"`
+	EditAvatar   string `json:"edit_avatar"`
 }
 
 type UserPagination struct {
