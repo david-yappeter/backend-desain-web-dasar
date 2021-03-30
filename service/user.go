@@ -295,7 +295,7 @@ func UserGetByArrayID(ctx context.Context, ids []int) ([]*model.User, error) {
 }
 
 //UserEditAvatar Edit Avatar
-func UserEditAvatar(ctx context.Context, input model.EditAvatar) (string, error) {
+func UserEditAvatar(ctx context.Context, input model.EditAvatar) (*string, error) {
 	if input.Avatar != nil {
 		if input.Avatar.ContentType == "image/jpeg" || input.Avatar.ContentType == "image/png" {
 			if input.Avatar.Size < 26214400 {
@@ -303,17 +303,19 @@ func UserEditAvatar(ctx context.Context, input model.EditAvatar) (string, error)
 
 				if err != nil {
 					fmt.Println(err)
-					return "Failed", err
+					return nil, err
 				}
 
 				if _, err := UserUpdateSingleColumn(ctx, "avatar", resp); err != nil {
 					fmt.Println(err)
-					return "Failed", err
+					return nil, err
 				}
 
-				return tools.GdriveViewLink(resp), nil
+				viewLink := tools.GdriveViewLink(resp)
+
+				return &viewLink, nil
 			} else {
-				return "Failed", &gqlerror.Error{
+				return nil, &gqlerror.Error{
 					Message: "File Exceeded 25MB",
 					Extensions: map[string]interface{}{
 						"code": "INVALID_FILE_SIZE",
@@ -321,7 +323,7 @@ func UserEditAvatar(ctx context.Context, input model.EditAvatar) (string, error)
 				}
 			}
 		} else {
-			return "Failed", &gqlerror.Error{
+			return nil, &gqlerror.Error{
 				Message: "File Extensions Must Be .png .jpg .jpeg",
 				Extensions: map[string]interface{}{
 					"code": "INVALID_FILE_EXTENSIONS",
@@ -331,9 +333,9 @@ func UserEditAvatar(ctx context.Context, input model.EditAvatar) (string, error)
 	} else {
 		if _, err := UserUpdateSingleColumn(ctx, "avatar", nil); err != nil {
 			fmt.Println(err)
-			return "Failed", err
+			return nil, err
 		}
 	}
 
-	return "Success", nil
+	return nil, nil
 }

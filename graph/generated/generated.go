@@ -203,7 +203,7 @@ type QueryResolver interface {
 type UserOpsResolver interface {
 	EditName(ctx context.Context, obj *model.UserOps, input model.EditUserName) (string, error)
 	EditPassword(ctx context.Context, obj *model.UserOps, input model.EditUserPassword) (string, error)
-	EditAvatar(ctx context.Context, obj *model.UserOps, input model.EditAvatar) (string, error)
+	EditAvatar(ctx context.Context, obj *model.UserOps, input model.EditAvatar) (*string, error)
 }
 type UserPaginationResolver interface {
 	TotalData(ctx context.Context, obj *model.UserPagination) (int, error)
@@ -899,7 +899,7 @@ input EditAvatar {
 type UserOps {
     edit_name(input: EditUserName!): String! @goField(forceResolver: true) @isLogin
     edit_password(input: EditUserPassword!): String! @goField(forceResolver: true) @isLogin
-    edit_avatar(input: EditAvatar!): String! @goField(forceResolver: true)
+    edit_avatar(input: EditAvatar!): String @goField(forceResolver: true)
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -3352,14 +3352,11 @@ func (ec *executionContext) _UserOps_edit_avatar(ctx context.Context, field grap
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserPagination_limit(ctx context.Context, field graphql.CollectedField, obj *model.UserPagination) (ret graphql.Marshaler) {
@@ -5546,9 +5543,6 @@ func (ec *executionContext) _UserOps(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._UserOps_edit_avatar(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		default:

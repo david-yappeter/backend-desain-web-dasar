@@ -18,7 +18,7 @@ func (r *userOpsResolver) EditPassword(ctx context.Context, obj *model.UserOps, 
 	return service.UserUpdateName(ctx, input.Password)
 }
 
-func (r *userOpsResolver) EditAvatar(ctx context.Context, obj *model.UserOps, input model.EditAvatar) (string, error) {
+func (r *userOpsResolver) EditAvatar(ctx context.Context, obj *model.UserOps, input model.EditAvatar) (*string, error) {
 	return service.UserEditAvatar(ctx, input)
 }
 

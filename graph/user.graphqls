@@ -38,5 +38,5 @@ input EditAvatar {
 type UserOps {
     edit_name(input: EditUserName!): String! @goField(forceResolver: true) @isLogin
     edit_password(input: EditUserPassword!): String! @goField(forceResolver: true) @isLogin
-    edit_avatar(input: EditAvatar!): String! @goField(forceResolver: true)
+    edit_avatar(input: EditAvatar!): String @goField(forceResolver: true)
 }

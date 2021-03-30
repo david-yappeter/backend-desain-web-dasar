@@ -72,9 +72,9 @@ type PostPagination struct {
 }
 
 type UserOps struct {
-	EditName     string `json:"edit_name"`
-	EditPassword string `json:"edit_password"`
-	EditAvatar   string `json:"edit_avatar"`
+	EditName     string  `json:"edit_name"`
+	EditPassword string  `json:"edit_password"`
+	EditAvatar   *string `json:"edit_avatar"`
 }
 
 type UserPagination struct {
