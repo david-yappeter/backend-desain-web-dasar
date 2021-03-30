@@ -299,6 +299,15 @@ func UserEditAvatar(ctx context.Context, input model.EditAvatar) (*string, error
 	if input.Avatar != nil {
 		if input.Avatar.ContentType == "image/jpeg" || input.Avatar.ContentType == "image/png" {
 			if input.Avatar.Size < 26214400 {
+				getUser, err := UserGetByToken(ctx)
+				if err != nil {
+					fmt.Println(err)
+					return nil, err
+				}
+				if getUser.Avatar != nil {
+					GdriveDeleteFile(*getUser.Avatar)
+				}
+
 				resp, err := UploadFile(ctx, *input.Avatar)
 
 				if err != nil {

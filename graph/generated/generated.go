@@ -899,7 +899,7 @@ input EditAvatar {
 type UserOps {
     edit_name(input: EditUserName!): String! @goField(forceResolver: true) @isLogin
     edit_password(input: EditUserPassword!): String! @goField(forceResolver: true) @isLogin
-    edit_avatar(input: EditAvatar!): String @goField(forceResolver: true)
+    edit_avatar(input: EditAvatar!): String @goField(forceResolver: true) @isLogin
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -3344,8 +3344,28 @@ func (ec *executionContext) _UserOps_edit_avatar(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.UserOps().EditAvatar(rctx, obj, args["input"].(model.EditAvatar))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.UserOps().EditAvatar(rctx, obj, args["input"].(model.EditAvatar))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsLogin == nil {
+				return nil, errors.New("directive isLogin is not implemented")
+			}
+			return ec.directives.IsLogin(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

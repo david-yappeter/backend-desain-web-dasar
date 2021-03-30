@@ -131,12 +131,26 @@ func createFile(service *drive.Service, name string, mimeType string, content io
 	return file, nil
 }
 
+func GdriveDeleteFile(fileId string) {
+	service, err := getService()
+	if err != nil {
+		panic(err)
+	}
+
+	if err = service.Files.Delete(fileId).Do(); err != nil {
+        fmt.Println(err)
+    }
+}
+
 //UploadFile Upload
 func UploadFile(ctx context.Context, userUploadFile graphql.Upload) (string, error) {
 	// Step 1. Open the file
 	f := userUploadFile.File
 
 	service, err := getService()
+	if err != nil {
+		panic(err)
+	}
 
 	// Step 4. Create the file and upload its content
 	file, err := createFile(service, userUploadFile.Filename, userUploadFile.ContentType, f, os.Getenv("GDRIVE_FOLDER_ID"))
