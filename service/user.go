@@ -294,18 +294,38 @@ func UserGetByArrayID(ctx context.Context, ids []int) ([]*model.User, error) {
 	return users, nil
 }
 
+//UserGetAvatarByToken Get Avatar By Token
+func UserGetAvatarByToken(ctx context.Context) (*string, error) {
+	userToken := ForContext(ctx)
+
+	var result struct {
+		Avatar *string `json:"avatar"`
+	}
+
+	db := config.ConnectGorm()
+	sqlDB, _ := db.DB()
+	defer sqlDB.Close()
+
+	if err := db.Table("user").Where("id = ?", userToken.ID).First(&result).Error; err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	return result.Avatar, nil
+}
+
 //UserEditAvatar Edit Avatar
 func UserEditAvatar(ctx context.Context, input model.EditAvatar) (*string, error) {
 	if input.Avatar != nil {
 		if input.Avatar.ContentType == "image/jpeg" || input.Avatar.ContentType == "image/png" {
 			if input.Avatar.Size < 26214400 {
-				getUser, err := UserGetByToken(ctx)
+				getAvatar, err := UserGetAvatarByToken(ctx)
 				if err != nil {
 					fmt.Println(err)
 					return nil, err
 				}
-				if getUser.Avatar != nil {
-					GdriveDeleteFile(*getUser.Avatar)
+				if getAvatar != nil {
+					GdriveDeleteFile(*getAvatar)
 				}
 
 				resp, err := UploadFile(ctx, *input.Avatar)
