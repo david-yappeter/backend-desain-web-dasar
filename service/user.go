@@ -50,6 +50,22 @@ func UserRegister(ctx context.Context, input model.NewUser) (*model.Authentifica
 				"code": "PASSWORD_EMPTY",
 			}}
 	}
+    
+	if len(input.Name) == 0 {
+		return nil, &gqlerror.Error{
+			Message: "Empty Name!",
+			Extensions: map[string]interface{}{
+				"code": "EMPTY_NAME",
+			}}
+	}
+
+	if len(input.Name) > 40 {
+		return nil, &gqlerror.Error{
+			Message: "Name Too Long (Max 40)!",
+			Extensions: map[string]interface{}{
+				"code": "NAME_TOO_LONG",
+			}}
+	}
 
 	_, err := UserGetByEmail(ctx, strings.ToLower(input.Email))
 
